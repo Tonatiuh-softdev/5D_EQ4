@@ -51,4 +51,9 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // ViewModel para Jetpack Compose (resuelve el error de viewModel)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Iconos extendidos de Material Design (resuelve el error de Icons)
+    implementation("androidx.compose.material:material-icons-extended")
 }

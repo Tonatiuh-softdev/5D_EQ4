@@ -1,0 +1,320 @@
+package com.equipo4.nearhome.ui.auth.login
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
+
+private val BlueLinkColor = Color(0xFF42A5F5)
+private val GrayInputBg = Color(0xFFFAFAFA)
+private val GrayInputBorder = Color(0xFFE0E0E0)
+private val GoogleButtonBg = Color(0xFFEEEEEE)
+
+@Composable
+fun LoginScreen(
+    viewModel: LoginViewModel = viewModel(),
+    onNavigateToRegister: () -> Unit = {},
+    onNavigateToForgotPassword: () -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LoginContent(
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChanged,
+        onPasswordChange = viewModel::onPasswordChanged,
+        onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
+        onLoginClick = viewModel::onLoginClicked,
+        onGoogleLoginClick = viewModel::onGoogleLoginClicked,
+        onForgotPasswordClick = onNavigateToForgotPassword,
+        onRegisterClick = onNavigateToRegister
+    )
+}
+
+@Composable
+private fun LoginContent(
+    uiState: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onTogglePasswordVisibility: () -> Unit,
+    onLoginClick: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
+    onRegisterClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Margen superior inicial (Y: ~89px en Figma)
+            Spacer(modifier = Modifier.height(44.dp))
+
+            // Logo: 60px x 59px
+            Image(
+                painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+                contentDescription = "NearHouse Logo",
+                modifier = Modifier.size(width = 60.dp, height = 59.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Título: ¡BIENVENIDO A NEARHOUSE!
+            Text(
+                text = "¡BIENVENIDO A NEARHOUSE!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Subtítulo: Inicio de Sesión
+            Text(
+                text = "Inicio de Sesión",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Campo Correo
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Correo:",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = uiState.email,
+                    onValueChange = onEmailChange,
+                    placeholder = { Text("email@domain.com", color = Color.Gray) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = GrayInputBg,
+                        unfocusedContainerColor = GrayInputBg,
+                        focusedBorderColor = GrayInputBorder,
+                        unfocusedBorderColor = GrayInputBorder
+                    ),
+                    isError = uiState.email.isNotEmpty() && !uiState.isEmailValid,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Campo Contraseña
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Contraseña:",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = uiState.password,
+                    onValueChange = onPasswordChange,
+                    placeholder = { Text("***************", color = Color.Gray) },
+                    singleLine = true,
+                    visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = onTogglePasswordVisibility) {
+                            Icon(
+                                imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = "Mostrar contraseña",
+                                tint = Color.Gray
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = GrayInputBg,
+                        unfocusedContainerColor = GrayInputBg,
+                        focusedBorderColor = GrayInputBorder,
+                        unfocusedBorderColor = GrayInputBorder
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Enlace "¿Olvidaste tu contraseña?"
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = buildAnnotatedString {
+                        append("¿Olvidaste tu contraseña?. ")
+                        withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
+                            append("Recuperar contraseña")
+                        }
+                    },
+                    fontSize = 12.sp,
+                    modifier = Modifier.clickable { onForgotPasswordClick() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Botón "Continuar"
+            Button(
+                onClick = onLoginClick,
+                enabled = uiState.isFormValid,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    disabledContainerColor = Color(0xFF888888),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                Text(
+                    text = "Continuar",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Divisor "o"
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                Text(
+                    text = "o",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Botón "Continuar con Google"
+            Button(
+                onClick = onGoogleLoginClick,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GoogleButtonBg,
+                    contentColor = Color.Black
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_google),
+                        contentDescription = "Logo Google",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Continuar con Google",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            // Distancia exacta de Figma: 32px hasta el divisor inferior
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Sección "No tengo cuenta" (Top: 662px en Figma)
+            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = buildAnnotatedString {
+                    append("No tengo cuenta. ")
+                    withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
+                        append("Registrarme")
+                    }
+                },
+                fontSize = 12.sp,
+                modifier = Modifier.clickable { onRegisterClick() }
+            )
+
+            // Colchón inferior para pantallas pequeñas
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginContent(
+        uiState = LoginUiState(),
+        onEmailChange = {},
+        onPasswordChange = {},
+        onTogglePasswordVisibility = {},
+        onLoginClick = {},
+        onGoogleLoginClick = {},
+        onForgotPasswordClick = {},
+        onRegisterClick = {}
+    )
+}

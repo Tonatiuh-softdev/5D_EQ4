@@ -56,4 +56,7 @@ dependencies {
 
     // Iconos extendidos de Material Design (resuelve el error de Icons)
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Agrega esta línea para habilitar la navegación:
+    implementation("androidx.navigation:navigation-compose:2.8.1")
 }

@@ -42,7 +42,8 @@ private val GoogleButtonBg = Color(0xFFEEEEEE)
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {}
+    onNavigateToForgotPassword: () -> Unit = {},
+    onLoginSuccess: () -> Unit = {} // 👈 Parámetro agregado para la navegación
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -51,7 +52,10 @@ fun LoginScreen(
         onEmailChange = viewModel::onEmailChanged,
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
-        onLoginClick = viewModel::onLoginClicked,
+        onLoginClick = {
+            viewModel.onLoginClicked()
+            onLoginSuccess() // 👈 Dispara la transición hacia Home
+        },
         onGoogleLoginClick = viewModel::onGoogleLoginClicked,
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
@@ -282,7 +286,7 @@ private fun LoginContent(
             // Distancia exacta de Figma: 32px hasta el divisor inferior
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección "No tengo cuenta" (Top: 662px en Figma)
+            // Sección "No tengo cuenta"
             HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 
             Spacer(modifier = Modifier.height(16.dp))

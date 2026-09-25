@@ -9,11 +9,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
+import com.equipo4.nearhome.ui.home.list.HomeScreen
 
-object AuthRoutes {
+object AppRoutes {
     const val LOGIN = "login"
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
+    const val HOME = "home"
 }
 
 class MainActivity : ComponentActivity() {
@@ -31,22 +33,29 @@ fun NearHomeApp() {
 
     NavHost(
         navController = navController,
-        startDestination = AuthRoutes.LOGIN
+        // Pantalla inicial configurada en LOGIN
+        startDestination = AppRoutes.LOGIN
     ) {
         // Pantalla 1: Login
-        composable(AuthRoutes.LOGIN) {
+        composable(AppRoutes.LOGIN) {
             LoginScreen(
                 onNavigateToRegister = {
-                    navController.navigate(AuthRoutes.SIGN_UP)
+                    navController.navigate(AppRoutes.SIGN_UP)
                 },
                 onNavigateToForgotPassword = {
-                    navController.navigate(AuthRoutes.FORGOT_PASSWORD)
+                    navController.navigate(AppRoutes.FORGOT_PASSWORD)
+                },
+                onLoginSuccess = {
+                    // Navega a Home y elimina Login del historial para no regresar al presionar 'Atrás'
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    }
                 }
             )
         }
 
         // Pantalla 2: Registro (Sign Up)
-        composable(AuthRoutes.SIGN_UP) {
+        composable(AppRoutes.SIGN_UP) {
             SignUpScreen(
                 onNavigateToLogin = {
                     navController.popBackStack()
@@ -55,8 +64,17 @@ fun NearHomeApp() {
         }
 
         // Pantalla 3: Recuperación de contraseña (Pendiente)
-        composable(AuthRoutes.FORGOT_PASSWORD) {
-            // Se implementará despues
+        composable(AppRoutes.FORGOT_PASSWORD) {
+            // Se implementará después
+        }
+
+        // Pantalla 4: Home (Lista de inmuebles)
+        composable(AppRoutes.HOME) {
+            HomeScreen(
+                onPropertyClick = { propertyId ->
+                    // Callback listo para cuando maquetemos el detalle de la propiedad
+                }
+            )
         }
     }
 }

@@ -319,7 +319,7 @@ private fun OtpVerificationContent(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Título exacto de Figma
+        // Título verificar correo
         Text(
             text = "Verificación de Correo",
             fontSize = 20.sp,
@@ -339,7 +339,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Subtítulo exacto de Figma
+        // Subtítulo de hemos enviado un numero de verificacion
         Text(
             text = buildAnnotatedString {
                 append("Hemos enviado un número de verificación a\ntu correo: ")
@@ -355,7 +355,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Etiqueta "Introduce el codigo:" de Figma
+        // Etiqueta "Introduce el codigo:"
         Text(
             text = "Introduce el codigo:",
             fontSize = 14.sp,
@@ -366,7 +366,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Casillas OTP idénticas a Figma
+        // Casillas OTP (casillas del codigo)
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -450,7 +450,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botón "Verificar Correo" exacto de Figma
+        // Botón "Verificar Correo"
         Button(
             onClick = onVerify,
             enabled = fullOtpCode.length == 6 && !uiState.isLoading,
@@ -476,12 +476,12 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Línea divisoria de Figma
+        // Línea divisoria
         HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Texto e indicador de reenvío de Figma
+        // Texto e indicador de reenvío
         if (uiState.canResendCode) {
             Text(
                 text = "Reenviar código",

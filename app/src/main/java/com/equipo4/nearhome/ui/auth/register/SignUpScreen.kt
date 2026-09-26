@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import kotlinx.coroutines.delay
 
 private val NavyButtonColor = Color(0xFF0B2C4D)
 private val BlueLinkColor = Color(0xFF42A5F5)
@@ -75,7 +76,8 @@ private val GoogleButtonBg = Color(0xFFEEEEEE)
 @Composable
 fun SignUpScreen(
     viewModel: SignUpViewModel = viewModel(),
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    onSignUpSuccess: () -> Unit = {} // 👈 Parámetro agregado
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -98,7 +100,14 @@ fun SignUpScreen(
             onVerify = viewModel::onVerifyOtp,
             onResend = viewModel::onResendCode
         )
-        SignUpStep.SUCCESS -> VerifiedSuccessContent()
+        SignUpStep.SUCCESS -> {
+            // Muestra la pantalla de éxito por 1.5 segundos y navega a Completa tu Perfil
+            LaunchedEffect(Unit) {
+                delay(1500)
+                onSignUpSuccess()
+            }
+            VerifiedSuccessContent()
+        }
     }
 }
 
@@ -366,7 +375,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Casillas OTP (casillas del codigo)
+        // Casillas OTP
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -476,12 +485,10 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Línea divisoria
         HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Texto e indicador de reenvío
         if (uiState.canResendCode) {
             Text(
                 text = "Reenviar código",

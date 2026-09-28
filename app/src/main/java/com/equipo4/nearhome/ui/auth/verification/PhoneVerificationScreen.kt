@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.verification
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,15 +12,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Sms
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -33,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -43,12 +49,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import kotlinx.coroutines.delay
 
 private val PrimaryNavy = Color(0xFF0B2C4D)
 private val ErrorRed = Color(0xFFE53935)
 private val GrayInputBg = Color(0xFFF2F3F5)
-private val GrayBorderDefault = Color(0xFFCCCCCC) // Contorno base suave para las casillas
+private val GrayBorderDefault = Color(0xFFCCCCCC)
 private val GrayDivider = Color(0xFFE0E0E0)
 private val GraySubtext = Color(0xFF757575)
 private val ResendLinkColor = Color(0xFF1E88E5)
@@ -97,120 +104,149 @@ private fun VerificationInputContent(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .navigationBarsPadding() // Respeta la barra del sistema
+                .imePadding()            // Empuja el contenido inferior arriba del teclado
         ) {
-            Spacer(modifier = Modifier.height(56.dp))
+            // Contenido principal
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 70.dp), // Deja espacio para que el footer no tape el botón
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(48.dp))
 
-            Text(
-                text = "Verifica tu Número",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Icon(
-                imageVector = Icons.Outlined.Sms,
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier.size(54.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Hemos enviado un codigo de verificación\npor SMS al número: ${uiState.phoneNumber}",
-                fontSize = 13.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center,
-                lineHeight = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Introduce el codigo:",
-                fontSize = 13.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OtpInputField(
-                otpCode = uiState.otpCode,
-                onOtpCodeChange = onOtpCodeChanged,
-                isError = uiState.isError
-            )
-
-            if (uiState.isError && uiState.errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = uiState.errorMessage,
-                    color = ErrorRed,
-                    fontSize = 12.sp,
+                    text = "Verifica tu Número",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color.Black,
                     textAlign = TextAlign.Center
                 )
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = onVerifyClicked,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryNavy,
-                    contentColor = Color.White
-                )
-            ) {
+                VerificationHeaderIcon()
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Text(
-                    text = "Verificar Número",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "Hemos enviado un codigo de verificación\npor SMS al número: ${uiState.phoneNumber}",
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
                 )
-            }
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            HorizontalDivider(color = GrayDivider, thickness = 0.8.dp)
+                Text(
+                    text = "Introduce el codigo:",
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            val annotatedFooter = buildAnnotatedString {
-                append("¿No has recibido el codigo?. ")
-                if (uiState.canResend) {
-                    withStyle(style = SpanStyle(color = ResendLinkColor, fontWeight = FontWeight.SemiBold)) {
-                        append("Reenviar SMS")
-                    }
-                } else {
-                    withStyle(style = SpanStyle(color = GraySubtext)) {
-                        append("Espera ${uiState.timerSeconds}s")
-                    }
+                OtpInputField(
+                    otpCode = uiState.otpCode,
+                    onOtpCodeChange = onOtpCodeChanged,
+                    isError = uiState.isError
+                )
+
+                if (uiState.isError && uiState.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = uiState.errorMessage,
+                        color = ErrorRed,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = onVerifyClicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryNavy,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Verificar Número",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
-            Text(
-                text = annotatedFooter,
-                fontSize = 12.sp,
-                color = GraySubtext,
-                textAlign = TextAlign.Center,
+            // Pie de página anclado al fondo (sube con el teclado)
+            Column(
                 modifier = Modifier
-                    .padding(bottom = 24.dp)
-                    .clickable(enabled = uiState.canResend) {
-                        onResendSmsClicked()
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HorizontalDivider(color = GrayDivider, thickness = 0.8.dp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                val annotatedFooter = buildAnnotatedString {
+                    append("¿No has recibido el codigo?. ")
+                    if (uiState.canResend) {
+                        withStyle(style = SpanStyle(color = ResendLinkColor, fontWeight = FontWeight.SemiBold)) {
+                            append("Reenviar SMS")
+                        }
+                    } else {
+                        withStyle(style = SpanStyle(color = GraySubtext)) {
+                            append("Espera ${uiState.timerSeconds}s")
+                        }
                     }
-            )
+                }
+
+                Text(
+                    text = annotatedFooter,
+                    fontSize = 12.sp,
+                    color = GraySubtext,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .clickable(enabled = uiState.canResend) {
+                            onResendSmsClicked()
+                        }
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun VerificationHeaderIcon() {
+    Box(
+        modifier = Modifier
+            .height(130.dp)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_celular_globo),
+            contentDescription = null,
+            modifier = Modifier.requiredSize(210.dp)
+        )
     }
 }
 
@@ -233,18 +269,16 @@ private fun OtpInputField(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Calcula el índice de la casilla activa según la longitud del código
                 val activeIndex = otpCode.length.coerceAtMost(5)
 
                 repeat(6) { index ->
                     val char = otpCode.getOrNull(index)?.toString() ?: ""
                     val isActive = index == activeIndex
 
-                    // Determina el color y grosor del borde
                     val borderColor = when {
                         isError -> ErrorRed
-                        isActive -> PrimaryNavy      // Casilla activa donde el usuario está parado
-                        else -> GrayBorderDefault   // Contorno normal para las demás
+                        isActive -> PrimaryNavy
+                        else -> GrayBorderDefault
                     }
 
                     val borderWidth = if (isActive || isError) 2.dp else 1.dp

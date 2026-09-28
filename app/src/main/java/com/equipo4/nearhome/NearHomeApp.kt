@@ -1,12 +1,15 @@
 package com.equipo4.nearhome
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
 import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
@@ -18,7 +21,7 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
-    const val PHONE_VERIFICATION = "phone_verification" // 👈 Nueva ruta para Verificación de Teléfono
+    const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
 }
 
@@ -74,16 +77,22 @@ fun NearHomeApp() {
         // Pantalla 3: Completa tu Perfil
         composable(AppRoutes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
-                onCompleteProfileSuccess = {
-                    // Al completar el perfil, manda a la pantalla de Verificación de Teléfono
-                    navController.navigate(AppRoutes.PHONE_VERIFICATION)
+                onCompleteProfileSuccess = { phoneNumber ->
+                    // Codificamos el teléfono para evitar errores con caracteres especiales (+ o espacios)
+                    val encodedPhone = Uri.encode(phoneNumber)
+                    navController.navigate("${AppRoutes.PHONE_VERIFICATION}/$encodedPhone")
                 }
             )
         }
 
         // Pantalla 4: Verificación de Teléfono
-        composable(AppRoutes.PHONE_VERIFICATION) {
+        composable(
+            route = "${AppRoutes.PHONE_VERIFICATION}/{phoneNumber}",
+            arguments = listOf(navArgument("phoneNumber") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
             PhoneVerificationScreen(
+                phoneNumber = phoneNumber,
                 onNavigateToLogin = {
                     // Al verificar exitosamente el número, manda a Iniciar Sesión limpiando el flujo
                     navController.navigate(AppRoutes.LOGIN) {

@@ -15,18 +15,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,8 +43,12 @@ import java.util.Locale
 
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
-private val SectionGrayBg = Color(0xFFEFEFEF)
+private val SectionGrayBg = Color(0xFFF8F9FA)
 private val BorderColor = Color(0xFFE5E7EB)
+private val BadgeBlueBg = Color(0xFFEBF5FF)
+private val BadgeBlueText = Color(0xFF1E88E5)
+private val TextDark = Color(0xFF1F2937)
+private val TextGray = Color(0xFF6B7280)
 
 @Composable
 fun HomeScreen(
@@ -74,7 +80,7 @@ fun HomeScreen(
             // Botones de filtro y ordenamiento
             FilterAndSortRow()
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // SECCIÓN DE PROPIEDADES
             Column(
@@ -84,13 +90,12 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "${formatNumber(uiState.properties.size)} inmuebles",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.DarkGray,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextGray,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                // Lista vertical que abarca el ancho
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
@@ -128,15 +133,15 @@ private fun HomeHeader(
             painter = painterResource(id = R.drawable.ic_nearhouse_logo),
             contentDescription = "Logo NearHome",
             modifier = Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .clip(CircleShape)
         )
 
         Row(
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .height(46.dp)
+                .clip(RoundedCornerShape(23.dp))
                 .background(LightGrayBg)
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -191,7 +196,7 @@ private fun FilterAndSortRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         OutlinedButton(
@@ -205,7 +210,7 @@ private fun FilterAndSortRow() {
                 painter = painterResource(id = R.drawable.ic_filtrar),
                 contentDescription = "Filtrar",
                 tint = Color.Black,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(text = "Filtrar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
@@ -228,7 +233,7 @@ private fun FilterAndSortRow() {
                 painter = painterResource(id = R.drawable.ic_ordenar),
                 contentDescription = "Ordenar",
                 tint = Color.Black,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(text = "Ordenar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
@@ -247,66 +252,56 @@ private fun PropertyCard(
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val coroutineScope = rememberCoroutineScope()
 
-    BoxWithConstraints(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .clickable { onClick() }
-            .padding(12.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, BorderColor)
     ) {
-        val isTablet = maxWidth >= 550.dp
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val isTablet = maxWidth >= 550.dp
 
-        if (isTablet) {
-            // DISEÑO TABLET / PANTALLA ANCHA (Carrusel a la izquierda, detalles a la derecha)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Carrusel a la izquierda (Ocupa ~40% del ancho)
-                PropertyImageCarousel(
-                    property = property,
-                    pagerState = pagerState,
-                    coroutineScope = coroutineScope,
-                    totalPages = totalPages,
-                    modifier = Modifier
-                        .weight(0.4f)
-                        .aspectRatio(16f / 10f)
-                )
-
-                // Detalles a la derecha (Ocupa el resto)
-                Column(
-                    modifier = Modifier.weight(0.6f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    PropertyInfoContent(
-                        property = property,
-                        onToggleSave = onToggleSave
-                    )
-                }
-            }
-        } else {
-            // DISEÑO CELULAR (Arriba carrusel, abajo detalles)
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                PropertyImageCarousel(
-                    property = property,
-                    pagerState = pagerState,
-                    coroutineScope = coroutineScope,
-                    totalPages = totalPages,
+            if (isTablet) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
-                )
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    PropertyImageCarousel(
+                        property = property,
+                        pagerState = pagerState,
+                        coroutineScope = coroutineScope,
+                        totalPages = totalPages,
+                        onToggleSave = onToggleSave,
+                        modifier = Modifier
+                            .weight(0.4f)
+                            .aspectRatio(16f / 10f)
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.weight(0.6f)) {
+                        PropertyInfoContent(property = property)
+                    }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    PropertyImageCarousel(
+                        property = property,
+                        pagerState = pagerState,
+                        coroutineScope = coroutineScope,
+                        totalPages = totalPages,
+                        onToggleSave = onToggleSave,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(210.dp)
+                    )
 
-                PropertyInfoContent(
-                    property = property,
-                    onToggleSave = onToggleSave
-                )
+                    PropertyInfoContent(property = property)
+                }
             }
         }
     }
@@ -319,12 +314,13 @@ private fun PropertyImageCarousel(
     pagerState: PagerState,
     coroutineScope: CoroutineScope,
     totalPages: Int,
+    onToggleSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFD9D9D9))
+            .background(Color(0xFFE5E7EB))
     ) {
         HorizontalPager(
             state = pagerState,
@@ -334,17 +330,56 @@ private fun PropertyImageCarousel(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        if (property.type == PropertyType.TERRENO) Color(0xFF6E7E65)
-                        else Color(0xFF8D8374)
+                        if (property.type == PropertyType.TERRENO) Color(0xFF53624E)
+                        else Color(0xFF7A7265)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Imagen ${page + 1}",
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontSize = 16.sp
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 15.sp
                 )
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Black.copy(alpha = 0.6f))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "${pagerState.currentPage + 1} / $totalPages",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.4f))
+                .clickable { onToggleSave() },
+            contentAlignment = Alignment.Center
+        ) {
+            val bookmarkIcon = if (property.isSaved) {
+                R.drawable.ic_guardar_relleno_abajo
+            } else {
+                R.drawable.ic_guardar_abajo
+            }
+            Icon(
+                painter = painterResource(id = bookmarkIcon),
+                contentDescription = "Guardar propiedad",
+                tint = Color.White,
+                modifier = Modifier.size(18.dp)
+            )
         }
 
         if (pagerState.currentPage > 0) {
@@ -386,142 +421,120 @@ private fun PropertyImageCarousel(
                 )
             }
         }
-
-        Icon(
-            imageVector = Icons.Default.MoreHoriz,
-            contentDescription = "Opciones",
-            tint = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(10.dp)
-                .size(22.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(10.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(Color.Black.copy(alpha = 0.6f))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/$totalPages",
-                    color = Color.White,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Icon(
-                    imageVector = Icons.Outlined.PhotoCamera,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(12.dp)
-                )
-            }
-        }
     }
 }
 
 @Composable
 private fun PropertyInfoContent(
-    property: Property,
-    onToggleSave: () -> Unit
+    property: Property
 ) {
-    Column {
-        // Precio y Guardar
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(14.dp)
+    ) {
+        // Fila 1: Precio + Tag RENTA / VENTA
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val formattedPrice = formatCurrency(property.price)
-            val priceText = if (property.listingType == ListingType.RENTA) {
-                "MX $formattedPrice / mes"
-            } else {
-                "MX $formattedPrice"
+
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = "MX \$$formattedPrice",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+                if (property.listingType == ListingType.RENTA) {
+                    Text(
+                        text = " / mes",
+                        fontSize = 14.sp,
+                        color = TextGray,
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                }
             }
 
-            Text(
-                text = priceText,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            IconButton(
-                onClick = onToggleSave,
-                modifier = Modifier.size(28.dp)
+            Surface(
+                color = BadgeBlueBg,
+                shape = RoundedCornerShape(6.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_guardar_relleno_abajo),
-                    contentDescription = "Guardar inmueble",
-                    tint = if (property.isSaved) NavyColor else Color.Gray,
-                    modifier = Modifier.size(20.dp)
+                Text(
+                    text = property.listingType.name,
+                    color = BadgeBlueText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }
 
-        // Ubicación
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Fila 2: Título
         Text(
-            text = property.location,
-            fontSize = 12.sp,
-            color = Color.DarkGray,
-            modifier = Modifier.padding(vertical = 2.dp)
+            text = property.title.uppercase(),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextDark,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
-        // Tipo de Propiedad
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Fila 3: PIN DE LOCALIZACIÓN
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(vertical = 2.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            val typeText = when (property.type) {
-                PropertyType.DEPARTAMENTO -> "Departamento"
-                PropertyType.CASA -> "Casa"
-                PropertyType.TERRENO -> "Terreno"
-            }
-
-            val iconRes = when (property.type) {
-                PropertyType.DEPARTAMENTO -> R.drawable.ic_departamento
-                PropertyType.TERRENO -> R.drawable.ic_terreno
-                PropertyType.CASA -> R.drawable.ic_casa_abajo
-            }
-
-            Text(
-                text = typeText,
-                fontSize = 11.sp,
-                color = Color.Gray
-            )
             Icon(
-                painter = painterResource(id = iconRes),
+                painter = painterResource(id = R.drawable.ic_pin_localizacion),
                 contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(14.dp)
+                tint = Color.Unspecified,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = property.location,
+                fontSize = 12.sp,
+                color = TextGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Características e Íconos
+        // Fila 4: Características dinámicas
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            FeatureItem(
-                iconRes = R.drawable.ic_regla_medicion,
-                text = "${property.areaSqM}m²"
-            )
+            val (typeText, typeIcon) = when (property.type) {
+                PropertyType.DEPARTAMENTO -> "Dept." to R.drawable.ic_departamento
+                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_abajo
+                PropertyType.TERRENO -> "Terreno" to R.drawable.ic_terreno
+            }
 
-            if (property.type != PropertyType.TERRENO) {
+            FeatureItem(iconRes = typeIcon, text = typeText)
+
+            if (property.type == PropertyType.TERRENO) {
+                if (property.frontMeters != null && property.depthMeters != null) {
+                    FeatureItem(
+                        iconRes = R.drawable.ic_regla_medicion,
+                        text = "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
+                    )
+                }
+            } else {
                 property.bedrooms?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_habitaciones,
-                        text = "$it recámaras"
+                        text = "$it recamaras"
                     )
                 }
                 property.bathrooms?.let {
@@ -533,21 +546,7 @@ private fun PropertyInfoContent(
                 property.garages?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_cocheras,
-                        text = "$it cochera${if (it > 1) "s" else ""}"
-                    )
-                }
-            } else {
-                property.frontMeters?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_ancho_alto_terreno,
-                        text = "${it.toInt()}m",
-                        iconRotation = 90f
-                    )
-                }
-                property.depthMeters?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_ancho_alto_terreno,
-                        text = "${it.toInt()}m"
+                        text = "$it cocheras"
                     )
                 }
             }
@@ -558,8 +557,7 @@ private fun PropertyInfoContent(
 @Composable
 private fun FeatureItem(
     iconRes: Int,
-    text: String,
-    iconRotation: Float = 0f
+    text: String
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -568,15 +566,13 @@ private fun FeatureItem(
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = Color.Black,
-            modifier = Modifier
-                .size(16.dp)
-                .rotate(iconRotation)
+            tint = TextGray,
+            modifier = Modifier.size(15.dp)
         )
         Text(
             text = text,
-            fontSize = 11.sp,
-            color = Color.Black
+            fontSize = 12.sp,
+            color = TextGray
         )
     }
 }

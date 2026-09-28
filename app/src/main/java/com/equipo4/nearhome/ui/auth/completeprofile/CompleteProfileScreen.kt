@@ -63,7 +63,7 @@ private val SubtitleColor = Color(0xFF212121)
 @Composable
 fun CompleteProfileScreen(
     viewModel: CompleteProfileViewModel = viewModel(),
-    onCompleteProfileSuccess: () -> Unit = {}
+    onCompleteProfileSuccess: (String) -> Unit = {} // 👈 Acepta el teléfono como parámetro
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -227,7 +227,14 @@ fun CompleteProfileScreen(
                 onClick = {
                     val isValid = viewModel.onContinueClicked()
                     if (isValid && isFormValid) {
-                        onCompleteProfileSuccess()
+                        // Formateamos el número completo: "+52 123-456-7890"
+                        val digits = uiState.phoneNumber.filter { it.isDigit() }
+                        val formattedPhone = if (digits.length == 10) {
+                            "${uiState.selectedCountry.code} ${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+                        } else {
+                            "${uiState.selectedCountry.code} ${uiState.phoneNumber}"
+                        }
+                        onCompleteProfileSuccess(formattedPhone)
                     }
                 },
                 modifier = Modifier
@@ -522,7 +529,6 @@ private fun CustomOutlinedDatePicker(
     )
 }
 
-// Transformación visual para Fecha de Nacimiento (DD/MM/AAAA)
 private class DateVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val raw = text.text.filter { it.isDigit() }.take(8)
@@ -560,7 +566,6 @@ private class DateVisualTransformation : VisualTransformation {
     }
 }
 
-// Transformación visual para Teléfono (XXX-XXX-XXXX)
 private class PhoneVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val raw = text.text.filter { it.isDigit() }.take(10)

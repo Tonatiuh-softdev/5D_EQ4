@@ -517,7 +517,7 @@ private fun PropertyInfoContent(
         ) {
             val (typeText, typeIcon) = when (property.type) {
                 PropertyType.DEPARTAMENTO -> "Dept." to R.drawable.ic_departamento
-                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_abajo
+                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_relleno_abajo
                 PropertyType.TERRENO -> "Terreno" to R.drawable.ic_terreno
             }
 
@@ -584,32 +584,39 @@ private fun BottomNavigationBar(
 ) {
     Surface(
         color = Color.White,
-        shadowElevation = 8.dp
+        shadowElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+                .navigationBarsPadding()
         ) {
-            val navIcons = listOf(
-                R.drawable.ic_casa_abajo,
-                R.drawable.ic_guardar_relleno_abajo,
-                R.drawable.ic_campanita_relleno_abajo,
-                R.drawable.ic_user_relleno_abajo
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val navIcons = listOf(
+                    R.drawable.ic_casa_relleno_abajo,
+                    R.drawable.ic_guardar_relleno_abajo,
+                    R.drawable.ic_campanita_relleno_abajo,
+                    R.drawable.ic_user_relleno_abajo
+                )
 
-            navIcons.forEachIndexed { index, resId ->
-                val isSelected = selectedTab == index
+                navIcons.forEachIndexed { index, resId ->
+                    val isSelected = selectedTab == index
 
-                IconButton(onClick = { onTabSelected(index) }) {
-                    Icon(
-                        painter = painterResource(id = resId),
-                        contentDescription = null,
-                        tint = if (isSelected) NavyColor else Color.Gray,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    IconButton(onClick = { onTabSelected(index) }) {
+                        Icon(
+                            painter = painterResource(id = resId),
+                            contentDescription = null,
+                            tint = if (isSelected) NavyColor else Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

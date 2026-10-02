@@ -599,19 +599,21 @@ private fun BottomNavigationBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Pares de íconos: (Icono Desactivado/Línea, Icono Activado/Relleno)
                 val navIcons = listOf(
-                    R.drawable.ic_casa_relleno_abajo,
-                    R.drawable.ic_guardar_relleno_abajo,
-                    R.drawable.ic_campanita_relleno_abajo,
-                    R.drawable.ic_user_relleno_abajo
+                    R.drawable.ic_casa_abajo to R.drawable.ic_casa_relleno_abajo,
+                    R.drawable.ic_guardar_abajo to R.drawable.ic_guardar_relleno_abajo,
+                    R.drawable.ic_campanita_abajo to R.drawable.ic_campanita_relleno_abajo,
+                    R.drawable.ic_user_abajo to R.drawable.ic_user_relleno_abajo
                 )
 
-                navIcons.forEachIndexed { index, resId ->
+                navIcons.forEachIndexed { index, (unselectedIcon, selectedIcon) ->
                     val isSelected = selectedTab == index
+                    val currentIcon = if (isSelected) selectedIcon else unselectedIcon
 
                     IconButton(onClick = { onTabSelected(index) }) {
                         Icon(
-                            painter = painterResource(id = resId),
+                            painter = painterResource(id = currentIcon),
                             contentDescription = null,
                             tint = if (isSelected) NavyColor else Color.Gray,
                             modifier = Modifier.size(24.dp)

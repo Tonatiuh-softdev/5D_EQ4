@@ -24,6 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -261,48 +262,19 @@ private fun PropertyCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(1.dp, BorderColor)
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val isTablet = maxWidth >= 550.dp
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PropertyImageCarousel(
+                property = property,
+                pagerState = pagerState,
+                coroutineScope = coroutineScope,
+                totalPages = totalPages,
+                onToggleSave = onToggleSave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(210.dp)
+            )
 
-            if (isTablet) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    PropertyImageCarousel(
-                        property = property,
-                        pagerState = pagerState,
-                        coroutineScope = coroutineScope,
-                        totalPages = totalPages,
-                        onToggleSave = onToggleSave,
-                        modifier = Modifier
-                            .weight(0.4f)
-                            .aspectRatio(16f / 10f)
-                    )
-
-                    Column(modifier = Modifier.weight(0.6f)) {
-                        PropertyInfoContent(property = property)
-                    }
-                }
-            } else {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    PropertyImageCarousel(
-                        property = property,
-                        pagerState = pagerState,
-                        coroutineScope = coroutineScope,
-                        totalPages = totalPages,
-                        onToggleSave = onToggleSave,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(210.dp)
-                    )
-
-                    PropertyInfoContent(property = property)
-                }
-            }
+            PropertyInfoContent(property = property)
         }
     }
 }
@@ -378,7 +350,9 @@ private fun PropertyImageCarousel(
                 painter = painterResource(id = bookmarkIcon),
                 contentDescription = "Guardar propiedad",
                 tint = Color.White,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier
+                    .size(18.dp)
+                    .scale(if (property.isSaved) 1.45f else 1.0f)
             )
         }
 
@@ -599,15 +573,15 @@ private fun BottomNavigationBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Pares de íconos: (Icono Desactivado/Línea, Icono Activado/Relleno)
+                // Se define el icono normal, el de relleno y la escala específica para corregir márgenes internos si aplica
                 val navIcons = listOf(
-                    R.drawable.ic_casa_abajo to R.drawable.ic_casa_relleno_abajo,
-                    R.drawable.ic_guardar_abajo to R.drawable.ic_guardar_relleno_abajo,
-                    R.drawable.ic_campanita_abajo to R.drawable.ic_campanita_relleno_abajo,
-                    R.drawable.ic_user_abajo to R.drawable.ic_user_relleno_abajo
+                    Triple(R.drawable.ic_casa_abajo, R.drawable.ic_casa_relleno_abajo, 1.0f),
+                    Triple(R.drawable.ic_guardar_abajo, R.drawable.ic_guardar_relleno_abajo, 1.45f),
+                    Triple(R.drawable.ic_campanita_abajo, R.drawable.ic_campanita_relleno_abajo, 1.0f),
+                    Triple(R.drawable.ic_user_abajo, R.drawable.ic_user_relleno_abajo, 1.0f)
                 )
 
-                navIcons.forEachIndexed { index, (unselectedIcon, selectedIcon) ->
+                navIcons.forEachIndexed { index, (unselectedIcon, selectedIcon, scaleFactor) ->
                     val isSelected = selectedTab == index
                     val currentIcon = if (isSelected) selectedIcon else unselectedIcon
 
@@ -616,7 +590,9 @@ private fun BottomNavigationBar(
                             painter = painterResource(id = currentIcon),
                             contentDescription = null,
                             tint = if (isSelected) NavyColor else Color.Gray,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .size(24.dp)
+                                .scale(if (isSelected) scaleFactor else 1.0f)
                         )
                     }
                 }

@@ -1,8 +1,10 @@
 package com.equipo4.nearhome
 
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
+import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 
 object AppRoutes {
     const val LOGIN = "login"
@@ -24,11 +27,22 @@ object AppRoutes {
     const val COMPLETE_PROFILE = "complete_profile"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
+    const val PUBLICACION_DETAIL = "publicacion_detail"
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // Mantiene Edge-to-Edge activo pero fuerza íconos oscuros en la barra de estado superior
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
+            )
+        )
         super.onCreate(savedInstanceState)
         setContent {
             NearHomeApp()
@@ -113,7 +127,28 @@ fun NearHomeApp() {
         composable(AppRoutes.HOME) {
             HomeScreen(
                 onPropertyClick = { propertyId ->
-                    // Callback listo para cuando maquetemos el detalle de la propiedad
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                }
+            )
+        }
+
+        // Pantalla 7: Detalle de Publicación
+        composable(
+            route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+
+            DetailPublicacionScreen(
+                publicacionId = publicacionId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onReportClick = {
+                    // Aquí puedes navegar a la pantalla de reporte cuando esté lista
+                },
+                onEditClick = {
+                    // Aquí puedes navegar a la pantalla de edición cuando esté lista
                 }
             )
         }

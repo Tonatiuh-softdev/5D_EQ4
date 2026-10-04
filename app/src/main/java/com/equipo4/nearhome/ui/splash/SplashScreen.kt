@@ -55,6 +55,7 @@ fun SplashScreen(onFinished: (isLoggedIn: Boolean) -> Unit) {
         // 2) Esperar a que termine la animación (o a que falle la carga del JSON)
         snapshotFlow { progress >= 1f || compositionResult.isFailure }.first { it }
 
+
         onFinished(isLoggedIn)
     }
 

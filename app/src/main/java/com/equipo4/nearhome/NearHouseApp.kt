@@ -11,12 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
+import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordScreen
+import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordViewModel
 import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
@@ -145,9 +148,20 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 5: Recuperación de contraseña (Pendiente)
+        // Pantalla 5: Recuperación de contraseña
         composable(AppRoutes.FORGOT_PASSWORD) {
-            // Se implementará después
+            val forgotPasswordViewModel: ForgotPasswordViewModel = viewModel()
+            ForgotPasswordScreen(
+                viewModel = forgotPasswordViewModel,
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(AppRoutes.SIGN_UP) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = false }
+                    }
+                }
+            )
         }
 
         // Pantalla 6: Home (Lista de inmuebles)

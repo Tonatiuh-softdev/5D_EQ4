@@ -25,5 +25,7 @@ data class Property(
     val frontMeters: Double? = null,
     val depthMeters: Double? = null,
     val images: List<Int> = emptyList(),
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )

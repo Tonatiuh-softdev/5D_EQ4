@@ -54,7 +54,8 @@ private val TextGray = Color(0xFF6B7280)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
-    onPropertyClick: (String) -> Unit = {}
+    onPropertyClick: (String) -> Unit = {},
+    onToggleToMap: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -75,7 +76,8 @@ fun HomeScreen(
             // Encabezado superior
             HomeHeader(
                 searchQuery = uiState.searchQuery,
-                onQueryChange = viewModel::onSearchQueryChange
+                onQueryChange = viewModel::onSearchQueryChange,
+                onToggleToMap = onToggleToMap
             )
 
             // Botones de filtro y ordenamiento
@@ -121,7 +123,8 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(
     searchQuery: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    onToggleToMap: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -184,9 +187,11 @@ private fun HomeHeader(
 
             Icon(
                 painter = painterResource(id = R.drawable.ic_localizacion),
-                contentDescription = "Pin Ubicación",
+                contentDescription = "Ver mapa",
                 tint = Color.Black,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier
+                    .size(18.dp)
+                    .clickable { onToggleToMap() }
             )
         }
     }

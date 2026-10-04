@@ -8,6 +8,9 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,8 +22,11 @@ import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
+import com.equipo4.nearhome.ui.splash.SplashScreen
+import com.equipo4.nearhome.util.SessionManager
 
 object AppRoutes {
+    const val SPLASH = "splash"
     const val LOGIN = "login"
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
@@ -32,6 +38,7 @@ object AppRoutes {
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         // Mantiene Edge-to-Edge activo pero fuerza íconos oscuros en la barra de estado superior
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
@@ -45,19 +52,38 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            NearHomeApp()
+            NearHouseApp()
         }
     }
 }
 
 @Composable
-fun NearHomeApp() {
+fun NearHouseApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
 
     NavHost(
         navController = navController,
-        startDestination = AppRoutes.LOGIN
+        startDestination = AppRoutes.SPLASH
     ) {
+        //Pantalla 0: Animacion
+        composable(AppRoutes.SPLASH) {
+            SplashScreen(
+                onFinished = { isLoggedIn ->
+                    val destination =
+                        if (isLoggedIn) AppRoutes.HOME
+                        else AppRoutes.LOGIN
+
+                    navController.navigate(destination) {
+                        popUpTo(AppRoutes.SPLASH) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
         // Pantalla 1: Login
         composable(AppRoutes.LOGIN) {
             LoginScreen(
@@ -68,6 +94,7 @@ fun NearHomeApp() {
                     navController.navigate(AppRoutes.FORGOT_PASSWORD)
                 },
                 onLoginSuccess = {
+                    sessionManager.setLoggedIn(true)
                     navController.navigate(AppRoutes.HOME) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }

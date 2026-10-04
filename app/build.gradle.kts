@@ -59,4 +59,8 @@ dependencies {
 
     // Agrega esta línea para habilitar la navegación:
     implementation("androidx.navigation:navigation-compose:2.8.1")
+
+    // Pantalla de carga: animación Lottie + Splash Screen API nativa
+    implementation(libs.lottie.compose)
+    implementation(libs.androidx.core.splashscreen)
 }

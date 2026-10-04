@@ -24,6 +24,7 @@ import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
+import com.equipo4.nearhome.ui.home.map.MapScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.util.SessionManager
@@ -36,6 +37,7 @@ object AppRoutes {
     const val COMPLETE_PROFILE = "complete_profile"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
+    const val MAP = "home_map"
     const val PUBLICACION_DETAIL = "publicacion_detail"
 }
 
@@ -167,6 +169,24 @@ fun NearHouseApp() {
         // Pantalla 6: Home (Lista de inmuebles)
         composable(AppRoutes.HOME) {
             HomeScreen(
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onToggleToMap = {
+                    navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
+                }
+            )
+        }
+
+        // Pantalla 6b: Home (Mapa de inmuebles)
+        composable(AppRoutes.MAP) {
+            MapScreen(
+                onToggleToList = {
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(AppRoutes.HOME) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 }

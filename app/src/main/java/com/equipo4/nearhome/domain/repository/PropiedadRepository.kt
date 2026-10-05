@@ -1,4 +1,7 @@
-package com.equipo4.nearhome.domain.repository 
+package com.equipo4.nearhome.domain.repository
+
+import com.equipo4.nearhome.domain.model.Property
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Contrato de acceso a propiedades. Hoy lo implementa PropiedadRepositoryFake (datos en memoria);

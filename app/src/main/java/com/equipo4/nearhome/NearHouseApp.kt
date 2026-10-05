@@ -25,6 +25,7 @@ import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.home.map.MapScreen
+import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.util.SessionManager
@@ -38,6 +39,7 @@ object AppRoutes {
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
+    const val SAVED = "saved"
     const val PUBLICACION_DETAIL = "publicacion_detail"
 }
 
@@ -167,6 +169,21 @@ fun NearHouseApp() {
         }
 
         // Pantalla 6: Home (Lista de inmuebles)
+        // Barra inferior global: 0 Inicio, 1 Guardados (2 Notificaciones y 3 Perfil aún sin pantalla)
+        val onBottomTab: (Int) -> Unit = { index ->
+            when (index) {
+                0 -> navController.navigate(AppRoutes.HOME) {
+                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    launchSingleTop = true
+                }
+                1 -> navController.navigate(AppRoutes.SAVED) {
+                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    launchSingleTop = true
+                }
+                else -> Unit
+            }
+        }
+
         composable(AppRoutes.HOME) {
             HomeScreen(
                 onPropertyClick = { propertyId ->
@@ -174,7 +191,19 @@ fun NearHouseApp() {
                 },
                 onToggleToMap = {
                     navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
-                }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Propiedades guardadas
+        composable(AppRoutes.SAVED) {
+            SavedScreen(
+                onBack = { navController.popBackStack() },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
             )
         }
 
@@ -189,7 +218,8 @@ fun NearHouseApp() {
                 },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
-                }
+                },
+                onBottomTabSelected = onBottomTab
             )
         }
 

@@ -63,7 +63,7 @@ private val SubtitleColor = Color(0xFF212121)
 @Composable
 fun CompleteProfileScreen(
     viewModel: CompleteProfileViewModel = viewModel(),
-    onCompleteProfileSuccess: (String) -> Unit = {} // 👈 Acepta el teléfono como parámetro
+    onCompleteProfileSuccess: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -72,17 +72,11 @@ fun CompleteProfileScreen(
     val isFirstLastNameCapitalInvalid = uiState.firstLastName.isNotEmpty() && !uiState.firstLastName.first().isUpperCase()
     val isSecondLastNameCapitalInvalid = uiState.secondLastName.isNotEmpty() && !uiState.secondLastName.first().isUpperCase()
 
-    // Validación de formato de Fecha de Nacimiento (DD/MM/AAAA)
-    val birthDateRegex = Regex("""^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$""")
-    val isBirthDateFormatInvalid = uiState.birthDate.isNotEmpty() && !uiState.birthDate.matches(birthDateRegex)
-
-    // Formulario válido sólo si todo está correcto Y la fecha cumple el formato completo
+    // Formulario válido si el ViewModel confirma validez y se cumplen las restricciones locales de mayúsculas
     val isFormValid = uiState.isFormValid &&
             !isFirstNameCapitalInvalid &&
             !isFirstLastNameCapitalInvalid &&
-            !isSecondLastNameCapitalInvalid &&
-            !isBirthDateFormatInvalid &&
-            uiState.birthDate.matches(birthDateRegex)
+            !isSecondLastNameCapitalInvalid
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -97,7 +91,6 @@ fun CompleteProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Título y Subtítulo
             Text(
                 text = "Completa tu perfil",
                 fontSize = 20.sp,
@@ -175,18 +168,14 @@ fun CompleteProfileScreen(
                 CustomOutlinedDatePicker(
                     value = uiState.birthDate,
                     onDateSelected = viewModel::onBirthDateSelected,
-                    isError = uiState.isBirthDateError || isBirthDateFormatInvalid,
+                    isError = uiState.isBirthDateError,
                     placeholder = "DD/MM/AAAA"
                 )
 
-                if (uiState.isBirthDateError || isBirthDateFormatInvalid) {
+                if (uiState.isBirthDateError) {
                     Spacer(modifier = Modifier.height(6.dp))
                     ErrorIconTextMessage(
-                        message = if (uiState.birthDate.isEmpty()) {
-                            "La fecha de nacimiento es obligatoria"
-                        } else {
-                            "Formato de fecha inválido (DD/MM/AAAA)"
-                        }
+                        message = uiState.birthDateErrorMessage ?: "La fecha de nacimiento es obligatoria"
                     )
                 }
             }
@@ -227,7 +216,6 @@ fun CompleteProfileScreen(
                 onClick = {
                     val isValid = viewModel.onContinueClicked()
                     if (isValid && isFormValid) {
-                        // Formateamos el número completo: "+52 123-456-7890"
                         val digits = uiState.phoneNumber.filter { it.isDigit() }
                         val formattedPhone = if (digits.length == 10) {
                             "${uiState.selectedCountry.code} ${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
@@ -253,7 +241,6 @@ fun CompleteProfileScreen(
                 )
             }
 
-            // Mensaje de error en rojo debajo del botón
             if (uiState.showGeneralError && !isFormValid) {
                 Spacer(modifier = Modifier.height(10.dp))
                 ErrorIconTextMessage(message = "Por favor, complete los campos obligatorios.")
@@ -263,7 +250,6 @@ fun CompleteProfileScreen(
         }
     }
 
-    // Modal BottomSheet para países
     if (uiState.isBottomSheetOpen) {
         ModalBottomSheet(
             onDismissRequest = viewModel::onCloseBottomSheet

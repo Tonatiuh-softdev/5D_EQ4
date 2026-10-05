@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 val MOCK_COUNTRIES = listOf(
     Country("Estados Unidos", "+1", "🇺🇸", "US"),
@@ -23,21 +26,21 @@ class CompleteProfileViewModel : ViewModel() {
     )
     val uiState: StateFlow<CompleteProfileUiState> = _uiState.asStateFlow()
 
-    // Banderas para saber si el usuario REALMENTE entró al campo al menos una vez
     private var firstNameHadFocus = false
     private var firstLastNameHadFocus = false
     private var phoneHadFocus = false
 
     fun onFirstNameChanged(value: String) {
+        val filteredValue = value.filter { it.isLetter() || it.isWhitespace() }
         _uiState.update { currentState ->
-            validateForm(currentState.copy(firstName = value))
+            validateForm(currentState.copy(firstName = filteredValue))
         }
     }
 
     fun onFirstNameFocusChanged(isFocused: Boolean) {
         if (isFocused) {
             firstNameHadFocus = true
-        } else if (firstNameHadFocus) { // Solo si ya había entrado previamente
+        } else if (firstNameHadFocus) {
             _uiState.update { currentState ->
                 validateForm(currentState.copy(firstNameTouched = true))
             }
@@ -45,15 +48,16 @@ class CompleteProfileViewModel : ViewModel() {
     }
 
     fun onFirstLastNameChanged(value: String) {
+        val filteredValue = value.filter { it.isLetter() || it.isWhitespace() }
         _uiState.update { currentState ->
-            validateForm(currentState.copy(firstLastName = value))
+            validateForm(currentState.copy(firstLastName = filteredValue))
         }
     }
 
     fun onFirstLastNameFocusChanged(isFocused: Boolean) {
         if (isFocused) {
             firstLastNameHadFocus = true
-        } else if (firstLastNameHadFocus) { // Solo si ya había entrado previamente
+        } else if (firstLastNameHadFocus) {
             _uiState.update { currentState ->
                 validateForm(currentState.copy(firstLastNameTouched = true))
             }
@@ -61,7 +65,8 @@ class CompleteProfileViewModel : ViewModel() {
     }
 
     fun onSecondLastNameChanged(value: String) {
-        _uiState.update { it.copy(secondLastName = value) }
+        val filteredValue = value.filter { it.isLetter() || it.isWhitespace() }
+        _uiState.update { it.copy(secondLastName = filteredValue) }
     }
 
     fun onBirthDateSelected(dateFormatted: String) {
@@ -80,7 +85,7 @@ class CompleteProfileViewModel : ViewModel() {
     fun onPhoneFocusChanged(isFocused: Boolean) {
         if (isFocused) {
             phoneHadFocus = true
-        } else if (phoneHadFocus) { // Solo si ya había entrado previamente
+        } else if (phoneHadFocus) {
             _uiState.update { currentState ->
                 validateForm(currentState.copy(phoneTouched = true))
             }
@@ -147,7 +152,12 @@ class CompleteProfileViewModel : ViewModel() {
     private fun validateForm(state: CompleteProfileUiState): CompleteProfileUiState {
         val showFirstNameErr = (state.firstNameTouched || state.isSubmittedAttempted) && state.firstName.isBlank()
         val showFirstLastNameErr = (state.firstLastNameTouched || state.isSubmittedAttempted) && state.firstLastName.isBlank()
-        val showBirthDateErr = (state.birthDateTouched || state.isSubmittedAttempted) && state.birthDate.isBlank()
+
+        // Validaciones de fecha de nacimiento
+        val birthDateErrText = getBirthDateErrorMessage(state.birthDate)
+        val isBirthDateValid = birthDateErrText == null
+
+        val showBirthDateErr = (state.birthDateTouched || state.isSubmittedAttempted) && !isBirthDateValid
 
         // Validación de teléfono (10 dígitos)
         val digitsOnly = state.phoneNumber.filter { it.isDigit() }
@@ -161,7 +171,7 @@ class CompleteProfileViewModel : ViewModel() {
 
         val isOverallValid = state.firstName.isNotBlank() &&
                 state.firstLastName.isNotBlank() &&
-                state.birthDate.isNotBlank() &&
+                isBirthDateValid &&
                 digitsOnly.length == 10
 
         val showGeneral = (state.isSubmittedAttempted) && !isOverallValid
@@ -170,10 +180,58 @@ class CompleteProfileViewModel : ViewModel() {
             isFirstNameError = showFirstNameErr,
             isFirstLastNameError = showFirstLastNameErr,
             isBirthDateError = showBirthDateErr,
+            birthDateErrorMessage = if (showBirthDateErr) birthDateErrText else null,
             isPhoneError = showPhoneErr,
             phoneErrorMessage = phoneErrText,
             showGeneralError = showGeneral,
             isFormValid = isOverallValid
         )
+    }
+
+    private fun getBirthDateErrorMessage(birthDate: String): String? {
+        if (birthDate.isBlank()) return "La fecha de nacimiento es obligatoria"
+        if (birthDate.length < 10) return "Formato de fecha incompleto (DD/MM/AAAA)"
+
+        // 1. Validar que la fecha exista físicamente en el calendario (rechaza día 32, mes 13, etc.)
+        if (!isValidCalendarDate(birthDate)) {
+            return "La fecha ingresada no existe (día o mes inválido)"
+        }
+
+        // 2. Validar edad exacta contra el día actual (debe tener entre 18 y 80 años)
+        val age = calculateExactAge(birthDate)
+        if (age < 18 || age > 80) {
+            return "Debes tener entre 18 y 80 años"
+        }
+
+        return null
+    }
+
+    private fun isValidCalendarDate(dateStr: String): Boolean {
+        return try {
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+            sdf.isLenient = false
+            sdf.parse(dateStr)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun calculateExactAge(birthDateStr: String): Int {
+        val parts = birthDateStr.split("/")
+        val day = parts[0].toInt()
+        val month = parts[1].toInt()
+        val year = parts[2].toInt()
+
+        val today = Calendar.getInstance()
+        val currentYear = today.get(Calendar.YEAR)
+        val currentMonth = today.get(Calendar.MONTH) + 1
+        val currentDay = today.get(Calendar.DAY_OF_MONTH)
+
+        var age = currentYear - year
+        if (currentMonth < month || (currentMonth == month && currentDay < day)) {
+            age--
+        }
+        return age
     }
 }

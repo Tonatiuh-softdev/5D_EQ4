@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -70,14 +71,17 @@ import com.equipo4.nearhome.R
 import kotlinx.coroutines.delay
 
 private val NavyButtonColor = Color(0xFF0B2C4D)
-private val BlueLinkColor = Color(0xFF42A5F5)
+private val BlueLinkColor = Color(0xFF3897F0)
+private val TextGrayDisclaimer = Color(0xFF8E8E93)
 private val GoogleButtonBg = Color(0xFFEEEEEE)
 
 @Composable
 fun SignUpScreen(
     viewModel: SignUpViewModel = viewModel(),
     onNavigateToLogin: () -> Unit = {},
-    onSignUpSuccess: () -> Unit = {} // 👈 Parámetro agregado
+    onSignUpSuccess: () -> Unit = {},
+    onNavigateToTerms: () -> Unit = {},
+    onNavigateToPrivacy: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -92,7 +96,9 @@ fun SignUpScreen(
             onPasswordChange = viewModel::onPasswordChanged,
             onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
             onSubmit = viewModel::onSubmitForm,
-            onNavigateToLogin = onNavigateToLogin
+            onNavigateToLogin = onNavigateToLogin,
+            onNavigateToTerms = onNavigateToTerms,
+            onNavigateToPrivacy = onNavigateToPrivacy
         )
         SignUpStep.OTP_VERIFICATION -> OtpVerificationContent(
             uiState = uiState,
@@ -101,7 +107,6 @@ fun SignUpScreen(
             onResend = viewModel::onResendCode
         )
         SignUpStep.SUCCESS -> {
-            // Muestra la pantalla de éxito por 1.5 segundos y navega a Completa tu Perfil
             LaunchedEffect(Unit) {
                 delay(1500)
                 onSignUpSuccess()
@@ -118,7 +123,9 @@ private fun SignUpFormContent(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToTerms: () -> Unit,
+    onNavigateToPrivacy: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -151,7 +158,7 @@ private fun SignUpFormContent(
                 CustomOutlinedInput(
                     value = uiState.email,
                     onValueChange = onEmailChange,
-                    placeholder = "email@gmail.com",
+                    placeholder = "email@domain.com",
                     keyboardType = KeyboardType.Email
                 )
             }
@@ -196,20 +203,42 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = buildAnnotatedString {
+            // Texto interactivo de Términos y condiciones y Política de Privacidad (Alineado con el mockup)
+            val termsAnnotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
                     append("Al hacer clic en continuar, aceptas nuestros ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) {
-                        append("Términos de Servicio")
-                    }
+                }
+
+                pushStringAnnotation(tag = "TERMS", annotation = "terms")
+                withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                    append("Términos\ny condiciones")
+                }
+                pop()
+
+                withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
                     append(" y nuestra ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) {
-                        append("Política de Privacidad")
-                    }
-                },
-                fontSize = 11.sp,
-                color = Color.Gray,
-                modifier = Modifier.fillMaxWidth()
+                }
+
+                pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+                withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                    append("Política de Privacidad")
+                }
+                pop()
+            }
+
+            ClickableText(
+                text = termsAnnotatedString,
+                style = TextStyle(
+                    lineHeight = 16.sp
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { offset ->
+                    termsAnnotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                        .firstOrNull()?.let { onNavigateToTerms() }
+
+                    termsAnnotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                        .firstOrNull()?.let { onNavigateToPrivacy() }
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -328,7 +357,6 @@ private fun OtpVerificationContent(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Título verificar correo
         Text(
             text = "Verificación de Correo",
             fontSize = 20.sp,
@@ -339,7 +367,6 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Icono del correo
         Image(
             painter = painterResource(id = R.drawable.ic_correo),
             contentDescription = "Icono de correo",
@@ -348,12 +375,11 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Subtítulo de hemos enviado un numero de verificacion
         Text(
             text = buildAnnotatedString {
                 append("Hemos enviado un número de verificación a\ntu correo: ")
                 withStyle(style = SpanStyle(color = Color(0xFF888888))) {
-                    append(uiState.email.ifEmpty { "email@gmail.com" })
+                    append(uiState.email.ifEmpty { "email@domain.com" })
                 }
             },
             fontSize = 14.sp,
@@ -364,7 +390,6 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Etiqueta "Introduce el codigo:"
         Text(
             text = "Introduce el codigo:",
             fontSize = 14.sp,
@@ -375,7 +400,6 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Casillas OTP
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -459,7 +483,6 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botón "Verificar Correo"
         Button(
             onClick = onVerify,
             enabled = fullOtpCode.length == 6 && !uiState.isLoading,

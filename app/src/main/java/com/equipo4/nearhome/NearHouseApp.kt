@@ -25,6 +25,8 @@ import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.home.map.MapScreen
+import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
+import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
@@ -41,12 +43,13 @@ object AppRoutes {
     const val MAP = "home_map"
     const val SAVED = "saved"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val TERMS_AND_CONDITIONS = "terms_and_conditions"
+    const val PRIVACY_POLICY = "privacy_policy"
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        // Mantiene Edge-to-Edge activo pero fuerza íconos oscuros en la barra de estado superior
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
                 scrim = Color.TRANSPARENT,
@@ -74,7 +77,7 @@ fun NearHouseApp() {
         navController = navController,
         startDestination = AppRoutes.SPLASH
     ) {
-        //Pantalla 0: Animacion
+        // Pantalla 0: Animacion
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onFinished = { isLoggedIn ->
@@ -116,10 +119,33 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onSignUpSuccess = {
-                    // Redirige a Completa tu Perfil eliminando el Registro de la pila
                     navController.navigate(AppRoutes.COMPLETE_PROFILE) {
                         popUpTo(AppRoutes.SIGN_UP) { inclusive = true }
                     }
+                },
+                onNavigateToTerms = {
+                    navController.navigate(AppRoutes.TERMS_AND_CONDITIONS)
+                },
+                onNavigateToPrivacy = {
+                    navController.navigate(AppRoutes.PRIVACY_POLICY)
+                }
+            )
+        }
+
+        // Pantalla Términos y Condiciones
+        composable(AppRoutes.TERMS_AND_CONDITIONS) {
+            TerminosCondicionesScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla Política de Privacidad
+        composable(AppRoutes.PRIVACY_POLICY) {
+            PoliticaPrivacidadScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -128,7 +154,6 @@ fun NearHouseApp() {
         composable(AppRoutes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
                 onCompleteProfileSuccess = { phoneNumber ->
-                    // Codificamos el teléfono para evitar errores con caracteres especiales (+ o espacios)
                     val encodedPhone = Uri.encode(phoneNumber)
                     navController.navigate("${AppRoutes.PHONE_VERIFICATION}/$encodedPhone")
                 }
@@ -144,7 +169,6 @@ fun NearHouseApp() {
             PhoneVerificationScreen(
                 phoneNumber = phoneNumber,
                 onNavigateToLogin = {
-                    // Al verificar exitosamente el número, manda a Iniciar Sesión limpiando el flujo
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
@@ -169,7 +193,6 @@ fun NearHouseApp() {
         }
 
         // Pantalla 6: Home (Lista de inmuebles)
-        // Barra inferior global: 0 Inicio, 1 Guardados (2 Notificaciones y 3 Perfil aún sin pantalla)
         val onBottomTab: (Int) -> Unit = { index ->
             when (index) {
                 0 -> navController.navigate(AppRoutes.HOME) {
@@ -236,10 +259,8 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onReportClick = {
-                    // Aquí puedes navegar a la pantalla de reporte cuando esté lista
                 },
                 onEditClick = {
-                    // Aquí puedes navegar a la pantalla de edición cuando esté lista
                 }
             )
         }

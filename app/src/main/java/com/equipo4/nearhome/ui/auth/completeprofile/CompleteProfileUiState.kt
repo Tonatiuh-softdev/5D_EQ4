@@ -16,10 +16,11 @@ data class CompleteProfileUiState(
     val birthDateTouched: Boolean = false,
     val phoneTouched: Boolean = false,
 
-    // Banderas de error visual
+    // Banderas de error visual y mensajes
     val isFirstNameError: Boolean = false,
     val isFirstLastNameError: Boolean = false,
     val isBirthDateError: Boolean = false,
+    val birthDateErrorMessage: String? = null,
     val isPhoneError: Boolean = false,
     val phoneErrorMessage: String? = null,
 

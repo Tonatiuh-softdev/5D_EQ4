@@ -106,7 +106,7 @@ private fun ProfileHeader(uiState: ProfileUiState) {
             .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Sin foto de perfil real todavía: círculo con ícono de persona.
+        // Sin foto de perfil real todavía: círculo con ícono de persona(se agregara de backend).
         Box(
             modifier = Modifier.size(60.dp).background(AvatarBg, CircleShape),
             contentAlignment = Alignment.Center

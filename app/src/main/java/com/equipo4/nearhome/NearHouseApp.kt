@@ -27,6 +27,7 @@ import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.home.map.MapScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
+import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
@@ -234,7 +235,20 @@ fun NearHouseApp() {
             )
         }
 
-
+        // Pantalla: Perfil (Vendedor/Arrendador)
+        composable(AppRoutes.PROFILE) {
+            ProfileScreen(
+                onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
+                onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
+                onLogoutClick = {
+                    sessionManager.setLoggedIn(false)
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
 
         // Pantalla 6b: Home (Mapa de inmuebles)
         composable(AppRoutes.MAP) {

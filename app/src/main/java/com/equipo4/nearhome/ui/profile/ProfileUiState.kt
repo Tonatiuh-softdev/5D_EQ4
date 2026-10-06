@@ -6,7 +6,7 @@ enum class UserRole(val label: String) {
     ADMIN("Administrador")
 }
 
-val LanguageOptions = listOf("Español", "English")
+val LanguageOptions = listOf("Español", "Inglés")
 
 data class ProfileUiState(
     val userName: String = "Anthony Edward Stark",

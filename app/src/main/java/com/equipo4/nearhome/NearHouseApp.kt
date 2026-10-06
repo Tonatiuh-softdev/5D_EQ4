@@ -42,6 +42,7 @@ object AppRoutes {
     const val HOME = "home"
     const val MAP = "home_map"
     const val SAVED = "saved"
+    const val PROFILE = "profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
@@ -203,7 +204,11 @@ fun NearHouseApp() {
                     popUpTo(AppRoutes.HOME) { inclusive = false }
                     launchSingleTop = true
                 }
-                else -> Unit
+                3 -> navController.navigate(AppRoutes.PROFILE) {
+                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    launchSingleTop = true
+                }
+                else -> Unit // 2 Notificaciones: aún sin pantalla
             }
         }
 
@@ -222,13 +227,14 @@ fun NearHouseApp() {
         // Pantalla: Propiedades guardadas
         composable(AppRoutes.SAVED) {
             SavedScreen(
-                onBack = { navController.popBackStack() },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onBottomTabSelected = onBottomTab
             )
         }
+
+
 
         // Pantalla 6b: Home (Mapa de inmuebles)
         composable(AppRoutes.MAP) {

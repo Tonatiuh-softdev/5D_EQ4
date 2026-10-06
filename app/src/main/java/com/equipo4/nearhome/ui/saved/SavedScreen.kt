@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +40,6 @@ private val EmptyIcon = Color(0xFF757575)
 @Composable
 fun SavedScreen(
     viewModel: SavedViewModel = viewModel(),
-    onBack: () -> Unit = {},
     onPropertyClick: (String) -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
@@ -52,7 +49,7 @@ fun SavedScreen(
     var removing by remember { mutableStateOf(setOf<String>()) }
 
     Scaffold(
-        topBar = { SavedTopBar(onBack) },
+        topBar = { SavedTopBar() },
         bottomBar = { NearHomeBottomBar(selectedTab = 1, onTabSelected = onBottomTabSelected) },
         containerColor = Color.White
     ) { innerPadding ->
@@ -101,15 +98,12 @@ fun SavedScreen(
 }
 
 @Composable
-private fun SavedTopBar(onBack: () -> Unit) {
+private fun SavedTopBar() {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White).statusBarsPadding()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = TextDark)
-            }
             Text("Propiedades guardadas", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TextDark)
         }
         HorizontalDivider(color = BorderColor)

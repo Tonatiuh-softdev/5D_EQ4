@@ -2,6 +2,7 @@ package com.equipo4.nearhome.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Language
@@ -24,10 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import kotlinx.coroutines.launch
 
 private val SectionBg = Color(0xFFF2F2F2)
 private val SectionText = Color(0xFF4B4B4B)
@@ -37,6 +43,11 @@ private val ArrowGray = Color(0xFF9CA3AF)
 private val ChipBg = Color(0xFFE6F2EA)
 private val ChipText = Color(0xFF2E7D4F)
 private val AvatarBg = Color(0xFFE5E7EB)
+private val NavyColor = Color(0xFF0B2C4D)
+private val SelectedRowBg = Color(0xFFEDEDED)
+private val SubtitleGray = Color(0xFF6B7280)
+
+private enum class SettingSheetType { LANGUAGE, DARK_MODE }
 
 @Composable
 fun ProfileScreen(
@@ -49,6 +60,8 @@ fun ProfileScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var openSheet by remember { mutableStateOf<SettingSheetType?>(null) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
@@ -73,16 +86,14 @@ fun ProfileScreen(
                 icon = Icons.Outlined.Language,
                 label = "Idioma",
                 value = uiState.language,
-                options = LanguageOptions,
                 showDivider = true,
-                onSelect = viewModel::onLanguageSelected
+                onClick = { openSheet = SettingSheetType.LANGUAGE }
             )
             SettingRow(
                 icon = Icons.Outlined.DarkMode,
                 label = "Modo oscuro",
                 value = uiState.darkModeLabel,
-                options = listOf("Activado", "Desactivado"),
-                onSelect = { viewModel.onDarkModeSelected(it == "Activado") }
+                onClick = { openSheet = SettingSheetType.DARK_MODE }
             )
 
             SectionHeader("Información")
@@ -90,10 +101,40 @@ fun ProfileScreen(
             ProfileRow(Icons.Outlined.MenuBook, "Politicas y privacidad", onClick = onPrivacyClick)
 
             SectionHeader("Sesión")
-            ProfileRow(Icons.AutoMirrored.Outlined.Logout, "Cerrar sesión", showDivider = true, onClick = onLogoutClick)
+            ProfileRow(Icons.AutoMirrored.Outlined.Logout, "Cerrar sesión", showDivider = true, onClick = { showLogoutDialog = true })
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+
+    when (openSheet) {
+        SettingSheetType.LANGUAGE -> SettingSheet(
+            title = "Idioma",
+            subtitle = "Selecciona el idioma de la aplicación.",
+            options = LanguageOptions,
+            selected = uiState.language,
+            onSelect = viewModel::onLanguageSelected,
+            onDismiss = { openSheet = null }
+        )
+        SettingSheetType.DARK_MODE -> SettingSheet(
+            title = "Modo oscuro",
+            subtitle = "Elige cómo quieres ver la aplicación.",
+            options = listOf("Activado", "Desactivado"),
+            selected = uiState.darkModeLabel,
+            onSelect = { viewModel.onDarkModeSelected(it == "Activado") },
+            onDismiss = { openSheet = null }
+        )
+        null -> Unit
+    }
+
+    if (showLogoutDialog) {
+        LogoutDialog(
+            onCancel = { showLogoutDialog = false },
+            onConfirm = {
+                showLogoutDialog = false
+                onLogoutClick()
+            }
+        )
     }
 }
 
@@ -106,7 +147,7 @@ private fun ProfileHeader(uiState: ProfileUiState) {
             .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Sin foto de perfil real todavía: círculo con ícono de persona(se agregara de backend).
+        // Sin foto de perfil real todavía: círculo con ícono de persona.
         Box(
             modifier = Modifier.size(60.dp).background(AvatarBg, CircleShape),
             contentAlignment = Alignment.Center
@@ -171,47 +212,141 @@ private fun ProfileRow(
     }
 }
 
-/** Fila de ajuste con valor y flechita; al tocarla despliega las opciones. */
+/** Fila de ajuste con valor y flechita; al tocarla abre un bottom sheet con las opciones. */
 @Composable
 private fun SettingRow(
     icon: ImageVector,
     label: String,
     value: String,
-    options: List<String>,
     showDivider: Boolean = false,
-    onSelect: (String) -> Unit
+    onClick: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
     ProfileRow(
         icon = icon,
         label = label,
         showDivider = showDivider,
-        onClick = { expanded = true },
+        onClick = onClick,
         trailing = {
-            Box {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = ArrowGray)
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    containerColor = Color.White
-                ) {
-                    options.forEach { option ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    option,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (option == value) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            onClick = { onSelect(option); expanded = false }
-                        )
-                    }
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextDark)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = ArrowGray)
             }
         }
     )
 }
+
+/** Bottom sheet de selección (Idioma / Modo oscuro): título, X, subtítulo y opciones con palomita. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingSheet(
+    title: String,
+    subtitle: String,
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    fun close(afterClose: () -> Unit = {}) {
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            afterClose()
+            onDismiss()
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        dragHandle = null,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 20.dp)) {
+                Text(
+                    title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = TextDark,
+                    modifier = Modifier.align(Alignment.CenterEnd).size(22.dp).noRippleClickable { close() }
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                subtitle,
+                fontSize = 12.sp,
+                color = SubtitleGray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(16.dp))
+            options.forEach { option ->
+                val isSelected = option == selected
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(if (isSelected) SelectedRowBg else Color.White)
+                        .noRippleClickable { close { onSelect(option) } }
+                        .height(52.dp)
+                        .padding(horizontal = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(option, fontSize = 14.sp, color = TextDark, modifier = Modifier.weight(1f))
+                    if (isSelected) {
+                        Icon(Icons.Default.Check, contentDescription = null, tint = TextDark, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Alerta de confirmación para cerrar sesión. */
+@Composable
+private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
+    Dialog(onDismissRequest = onCancel) {
+        Surface(shape = RoundedCornerShape(12.dp), color = Color.White) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "¿Estás seguro de que quieres cerrar sesión?",
+                    fontSize = 14.sp,
+                    color = TextDark,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onCancel,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB0B5BC), contentColor = Color.White)
+                    ) { Text("No", fontSize = 13.sp) }
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = NavyColor, contentColor = Color.White)
+                    ) { Text("Cerrar sesión", fontSize = 13.sp, maxLines = 1) }
+                }
+            }
+        }
+    }
+}
+
+/** clickable sin ripple (evita el sombreado gris al presionar). */
+@Composable
+private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
+    clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )

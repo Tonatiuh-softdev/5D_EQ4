@@ -63,7 +63,7 @@ fun ProfileScreen(
             ProfileHeader(uiState)
 
             SectionHeader("Perfil")
-            if (uiState.role == UserRole.VENDEDOR) {
+            if (uiState.canManageListings) {
                 ProfileRow(Icons.Outlined.Verified, "Mis anuncios", showDivider = true, onClick = onMyListingsClick)
             }
             ProfileRow(Icons.Outlined.Settings, "Administración de la cuenta", onClick = onAccountClick)

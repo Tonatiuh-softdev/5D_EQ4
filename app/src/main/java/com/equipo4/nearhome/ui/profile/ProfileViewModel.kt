@@ -1,4 +1,10 @@
-package com.equipo4.nearhome.ui.profile 
+package com.equipo4.nearhome.ui.profile
+
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Datos de usuario de prueba (sin backend). Idioma y modo oscuro solo cambian el estado de esta

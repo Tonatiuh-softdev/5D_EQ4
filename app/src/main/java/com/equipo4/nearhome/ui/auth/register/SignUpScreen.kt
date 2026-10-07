@@ -161,16 +161,6 @@ private fun SignUpFormContent(
                     placeholder = "email@domain.com",
                     keyboardType = KeyboardType.Email
                 )
-
-                if (uiState.showEmailError && uiState.emailErrorMessage != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = uiState.emailErrorMessage!!,
-                        color = ErrorRed,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -213,7 +203,7 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Texto interactivo de Términos y condiciones y Política de Privacidad
+            // Texto interactivo de Términos y condiciones y Política de Privacidad (Alineado con el mockup)
             val termsAnnotatedString = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
                     append("Al hacer clic en continuar, aceptas nuestros ")

@@ -5,9 +5,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -61,6 +63,8 @@ fun HomeScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = {
@@ -80,7 +84,13 @@ fun HomeScreen(
             HomeHeader(
                 searchQuery = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
-                onToggleToMap = onToggleToMap
+                onToggleToMap = onToggleToMap,
+                onHomeClick = {
+                    viewModel.onSearchQueryChange("")
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
+                }
             )
 
             // Botones de filtro y ordenamiento
@@ -103,6 +113,7 @@ fun HomeScreen(
                 )
 
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -127,7 +138,8 @@ fun HomeScreen(
 private fun HomeHeader(
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    onToggleToMap: () -> Unit
+    onToggleToMap: () -> Unit,
+    onHomeClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -142,6 +154,10 @@ private fun HomeHeader(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onHomeClick() }
         )
 
         Row(

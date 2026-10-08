@@ -24,6 +24,7 @@ data class Property(
     val garages: Int? = null,
     val frontMeters: Double? = null,
     val depthMeters: Double? = null,
+    /** IDs de recursos drawable (R.drawable.*). Con backend pasarán a ser URLs. */
     val images: List<Int> = emptyList(),
     val isSaved: Boolean = false,
     val latitude: Double? = null,

@@ -8,7 +8,7 @@ data class PublicacionDetail(
     val esRenta: Boolean,
     val tipoPropiedad: String,
     val direccion: String,
-    val imagenes: List<String>,
+    val imagenes: List<Int>, // IDs de drawable (con backend serán URLs)
     val metrosCuadrados: Int,
     val recamaras: Int,
     val banos: Int,

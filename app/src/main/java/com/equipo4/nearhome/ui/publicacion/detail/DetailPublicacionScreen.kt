@@ -3,6 +3,7 @@ package com.equipo4.nearhome.ui.publicacion.detail
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.common.FakeMapPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,14 +151,12 @@ private fun DetailContent(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.LightGray),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Imagen ${page + 1}", color = Color.DarkGray)
-                }
+                Image(
+                    painter = painterResource(id = pub.imagenes[page]),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
             // Contador de posición
@@ -282,16 +284,17 @@ private fun DetailContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Mini Mapa
-            Box(
+            FakeMapPreview(
+                propertyType = when (pub.tipoPropiedad.lowercase()) {
+                    "casa" -> PropertyType.CASA
+                    "terreno" -> PropertyType.TERRENO
+                    else -> PropertyType.DEPARTAMENTO
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE8ECEF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Vista previa del Mapa con Puntos de Interés", color = Color.Gray, fontSize = 12.sp)
-            }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

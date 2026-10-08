@@ -14,5 +14,8 @@ interface PropiedadRepository {
     /** Propiedades marcadas como guardadas. Emite de nuevo cada vez que cambian. */
     fun observeSaved(): Flow<List<Property>>
 
+    /** Una propiedad por ID (para el detalle). Null si no existe. */
+    suspend fun getById(propertyId: String): Property?
+
     suspend fun setSaved(propertyId: String, saved: Boolean)
 }

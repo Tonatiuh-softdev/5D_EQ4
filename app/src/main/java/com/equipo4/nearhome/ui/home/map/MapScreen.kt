@@ -3,6 +3,7 @@ package com.equipo4.nearhome.ui.home.map
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,7 +58,6 @@ import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import java.text.NumberFormat
 import java.util.Locale
-import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 private val NavyColor = Color(0xFF0B2C4D)
@@ -111,8 +111,6 @@ private fun Property.worldPos(): Offset {
     val y = ((LAT_MAX - latitude!!) / (LAT_MAX - LAT_MIN) * WORLD_H).toFloat()
     return Offset(x, y)
 }
-
-private class MapCluster(val items: MutableList<Property>, var sx: Float, var sy: Float)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +196,7 @@ fun MapScreen(
     }
 }
 
-/** Mapa dibujado con Canvas (sin Google Maps): arrastrar, pellizcar para zoom y clustering. */
+/** Mapa dibujado con Canvas (sin Google Maps): arrastrar y pellizcar para hacer zoom. Un pin por propiedad. */
 @Composable
 private fun FakeMap(
     properties: List<Property>,
@@ -254,54 +252,23 @@ private fun FakeMap(
             }
         }
 
-        // Clustering por distancia en pantalla.
-        val clusters = remember(properties, mapScale, offset, viewW) {
-            val thresholdPx = 46f * d
-            val list = mutableListOf<MapCluster>()
-            properties.forEach { p ->
-                val w = p.worldPos()
-                val sx = w.x * d * mapScale + offset.x
-                val sy = w.y * d * mapScale + offset.y
-                val near = list.firstOrNull { hypot(it.sx - sx, it.sy - sy) < thresholdPx }
-                if (near == null) list.add(MapCluster(mutableListOf(p), sx, sy))
-                else {
-                    near.items.add(p)
-                    near.sx = (near.sx * (near.items.size - 1) + sx) / near.items.size
-                    near.sy = (near.sy * (near.items.size - 1) + sy) / near.items.size
-                }
-            }
-            list
-        }
-
+        // Cada propiedad es un pin individual (sin agrupar). Se dibujan de arriba hacia abajo
+        // para que los pines más cercanos a la parte baja queden encima si se traslapan.
         val pinW = with(density) { 36.dp.roundToPx() }
         val pinH = with(density) { 50.dp.roundToPx() }
-        val bubble = with(density) { 44.dp.roundToPx() }
 
-        clusters.forEach { cluster ->
-            if (cluster.items.size == 1) {
-                val p = cluster.items.first()
-                Image(
-                    painter = painterResource(pinRes(p.type)),
-                    contentDescription = p.title,
-                    modifier = Modifier
-                        .offset { IntOffset((cluster.sx - pinW / 2f).roundToInt(), (cluster.sy - pinH).roundToInt()) }
-                        .size(36.dp, 50.dp)
-                        .noRippleClickable { onPropertyClick(p.id) }
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .offset { IntOffset((cluster.sx - bubble / 2f).roundToInt(), (cluster.sy - bubble / 2f).roundToInt()) }
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(NavyColor)
-                        .border(3.dp, Color.White, CircleShape)
-                        .noRippleClickable { zoomAround(Offset(cluster.sx, cluster.sy), 1.9f) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("${cluster.items.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                }
-            }
+        properties.sortedBy { it.worldPos().y }.forEach { p ->
+            val w = p.worldPos()
+            val sx = w.x * d * mapScale + offset.x
+            val sy = w.y * d * mapScale + offset.y
+            Image(
+                painter = painterResource(pinRes(p.type)),
+                contentDescription = p.title,
+                modifier = Modifier
+                    .offset { IntOffset((sx - pinW / 2f).roundToInt(), (sy - pinH).roundToInt()) }
+                    .size(36.dp, 50.dp)
+                    .noRippleClickable { onPropertyClick(p.id) }
+            )
         }
 
         // Controles de zoom (útiles en emulador sin multitouch).
@@ -678,7 +645,15 @@ private fun PropertyPreviewSheet(
         val pagerState = rememberPagerState(pageCount = { totalPages })
         Box(modifier = Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(12.dp))) {
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                Box(
+                val imageRes = property.images.getOrNull(page)
+                if (imageRes != null) {
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else Box(
                     modifier = Modifier.fillMaxSize().background(
                         if (property.type == PropertyType.TERRENO) Color(0xFF53624E) else Color(0xFF7A7265)
                     ),

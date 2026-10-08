@@ -3,6 +3,7 @@ package com.equipo4.nearhome.ui.common
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -111,7 +112,15 @@ private fun PropertyImageCarousel(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            Box(
+            val imageRes = property.images.getOrNull(page)
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +33,8 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -98,6 +101,7 @@ fun SignUpScreen(
             onEmailChange = viewModel::onEmailChanged,
             onPasswordChange = viewModel::onPasswordChanged,
             onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
+            onTermsAcceptedChange = viewModel::onTermsAcceptedChanged,
             onSubmit = viewModel::onSubmitForm,
             onNavigateToLogin = onNavigateToLogin,
             onNavigateToTerms = onNavigateToTerms,
@@ -125,6 +129,7 @@ private fun SignUpFormContent(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
+    onTermsAcceptedChange: (Boolean) -> Unit,
     onSubmit: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToTerms: () -> Unit,
@@ -146,7 +151,8 @@ private fun SignUpFormContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(50.dp))
@@ -234,49 +240,73 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Texto interactivo de Términos y condiciones y Política de Privacidad
-            val termsAnnotatedString = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
-                    append("Al hacer clic en continuar, aceptas nuestros ")
+            // Checkbox y Texto interactivo de Términos y condiciones y Política de Privacidad
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = uiState.isTermsAccepted,
+                    onCheckedChange = onTermsAcceptedChange,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = NavyButtonColor
+                    )
+                )
+
+                val termsAnnotatedString = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
+                        append("Acepto los ")
+                    }
+
+                    pushStringAnnotation(tag = "TERMS", annotation = "terms")
+                    withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                        append("Términos y condiciones")
+                    }
+                    pop()
+
+                    withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
+                        append(" y la ")
+                    }
+
+                    pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+                    withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                        append("Política de Privacidad")
+                    }
+                    pop()
                 }
 
-                pushStringAnnotation(tag = "TERMS", annotation = "terms")
-                withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
-                    append("Términos\ny condiciones")
-                }
-                pop()
+                ClickableText(
+                    text = termsAnnotatedString,
+                    style = TextStyle(
+                        lineHeight = 16.sp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = { offset ->
+                        termsAnnotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                            .firstOrNull()?.let { onNavigateToTerms() }
 
-                withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
-                    append(" y nuestra ")
-                }
-
-                pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-                withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
-                    append("Política de Privacidad")
-                }
-                pop()
+                        termsAnnotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                            .firstOrNull()?.let { onNavigateToPrivacy() }
+                    }
+                )
             }
 
-            ClickableText(
-                text = termsAnnotatedString,
-                style = TextStyle(
-                    lineHeight = 16.sp
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { offset ->
-                    termsAnnotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
-                        .firstOrNull()?.let { onNavigateToTerms() }
-
-                    termsAnnotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
-                        .firstOrNull()?.let { onNavigateToPrivacy() }
-                }
-            )
+            if (uiState.showTermsError) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Debes aceptar los términos y condiciones para continuar",
+                    color = ErrorRed,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = onSubmit,
-                enabled = uiState.isFormValid,
+                enabled = uiState.areFieldsValid,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = NavyButtonColor,
@@ -389,7 +419,9 @@ private fun OtpVerificationContent(
                     focusManager.clearFocus()
                 })
             }
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
@@ -565,6 +597,8 @@ private fun OtpVerificationContent(
                 textAlign = TextAlign.Center
             )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

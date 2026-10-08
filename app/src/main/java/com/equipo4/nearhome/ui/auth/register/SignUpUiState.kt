@@ -11,6 +11,8 @@ data class SignUpUiState(
     val email: String = "",
     val password: String = "",
     val confirmPassword: String = "",
+    val isTermsAccepted: Boolean = false,
+    val showTermsError: Boolean = false,
     val otpCode: List<String> = List(6) { "" },
     val isOtpError: Boolean = false,
     val otpErrorMessage: String? = null,
@@ -111,7 +113,8 @@ data class SignUpUiState(
         }
 
     val doPasswordsMatch: Boolean get() = password.isNotEmpty() && password == confirmPassword
-    val isFormValid: Boolean get() = isEmailValid && isPasswordValid && doPasswordsMatch
+    val areFieldsValid: Boolean get() = isEmailValid && isPasswordValid && doPasswordsMatch
+    val isFormValid: Boolean get() = areFieldsValid && isTermsAccepted
     val isOtpComplete: Boolean get() = otpCode.all { it.isNotEmpty() }
 
     val showPasswordMismatchError: Boolean

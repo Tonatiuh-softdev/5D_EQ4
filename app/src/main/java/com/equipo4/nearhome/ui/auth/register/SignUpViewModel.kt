@@ -29,6 +29,15 @@ class SignUpViewModel : ViewModel() {
         _uiState.update { it.copy(confirmPassword = confirmPassword) }
     }
 
+    fun onTermsAcceptedChanged(accepted: Boolean) {
+        _uiState.update {
+            it.copy(
+                isTermsAccepted = accepted,
+                showTermsError = if (accepted) false else it.showTermsError
+            )
+        }
+    }
+
     fun onOtpDigitChanged(index: Int, digit: String) {
         if (digit.length <= 1) {
             val updatedOtp = _uiState.value.otpCode.toMutableList()
@@ -38,9 +47,19 @@ class SignUpViewModel : ViewModel() {
     }
 
     fun onSubmitForm() {
+        if (!_uiState.value.isTermsAccepted) {
+            _uiState.update { it.copy(showTermsError = true) }
+            return
+        }
+
         if (_uiState.value.isFormValid) {
-            _uiState.update { it.copy(step = SignUpStep.OTP_VERIFICATION) }
-            startResendTimer()
+            // Al entrar a la verificación, la opción de "Reenviar código" estará lista para usarse cuando el usuario quiera.
+            _uiState.update {
+                it.copy(
+                    step = SignUpStep.OTP_VERIFICATION,
+                    canResendCode = true
+                )
+            }
         }
     }
 
@@ -60,7 +79,16 @@ class SignUpViewModel : ViewModel() {
 
     fun onResendCode() {
         if (_uiState.value.canResendCode) {
-            _uiState.update { it.copy(canResendCode = false, resendCountdown = 30) }
+            // Al presionar "Reenviar código", se limpian las casillas y arranca el conteo regresivo
+            _uiState.update {
+                it.copy(
+                    canResendCode = false,
+                    resendCountdown = 30,
+                    otpCode = List(6) { "" },
+                    isOtpError = false,
+                    otpErrorMessage = null
+                )
+            }
             startResendTimer()
         }
     }

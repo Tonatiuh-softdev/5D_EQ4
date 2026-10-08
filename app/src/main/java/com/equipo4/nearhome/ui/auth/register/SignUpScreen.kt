@@ -185,6 +185,16 @@ private fun SignUpFormContent(
                     placeholder = "*****************",
                     isPassword = true
                 )
+
+                if (uiState.showPasswordError && uiState.passwordErrorMessage != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = uiState.passwordErrorMessage!!,
+                        color = ErrorRed,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -204,7 +214,7 @@ private fun SignUpFormContent(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Las contraseñas no coinciden",
-                        color = Color(0xFFE53935),
+                        color = ErrorRed,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )

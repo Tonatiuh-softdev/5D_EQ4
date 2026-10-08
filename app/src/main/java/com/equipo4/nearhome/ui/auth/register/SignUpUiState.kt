@@ -20,6 +20,7 @@ data class SignUpUiState(
 ) {
     private val allowedDomains = listOf("gmail", "hotmail", "outlook")
 
+    // Validaciones de Correo
     val isEmailValid: Boolean
         get() {
             if (email.isBlank() || !email.contains("@")) return false
@@ -29,10 +30,8 @@ data class SignUpUiState(
             val localPart = parts[0]
             val domainPart = parts[1].lowercase()
 
-            // Debe tener más de 4 caracteres antes del '@'
             if (localPart.length <= 4) return false
 
-            // Debe pertenecer a un dominio permitido (gmail, hotmail, outlook)
             val isAllowedDomain = allowedDomains.any { domain ->
                 domainPart == domain || domainPart.startsWith("$domain.")
             }
@@ -72,7 +71,30 @@ data class SignUpUiState(
             return null
         }
 
-    val isPasswordValid: Boolean get() = password.length >= 6
+    // Validaciones de Contraseña
+    private val hasMinLength: Boolean get() = password.length >= 8
+    private val hasLowercase: Boolean get() = password.any { it.isLowerCase() }
+    private val hasUppercase: Boolean get() = password.any { it.isUpperCase() }
+    private val hasDigit: Boolean get() = password.any { it.isDigit() }
+    private val hasNoRepeatedDigits: Boolean get() = !Regex("([0-9])\\1").containsMatchIn(password)
+
+    val isPasswordValid: Boolean
+        get() = hasMinLength && hasLowercase && hasUppercase && hasDigit && hasNoRepeatedDigits
+
+    val showPasswordError: Boolean
+        get() = password.isNotEmpty() && !isPasswordValid
+
+    val passwordErrorMessage: String?
+        get() {
+            if (password.isEmpty()) return null
+            if (!hasMinLength) return "La contraseña debe tener al menos 8 caracteres"
+            if (!hasLowercase) return "Debe incluir al menos una letra minúscula"
+            if (!hasUppercase) return "Debe incluir al menos una letra mayúscula"
+            if (!hasDigit) return "Debe incluir al menos un número"
+            if (!hasNoRepeatedDigits) return "No puede tener números repetidos seguidos (ej: 11, 22)"
+            return null
+        }
+
     val doPasswordsMatch: Boolean get() = password.isNotEmpty() && password == confirmPassword
     val isFormValid: Boolean get() = isEmailValid && isPasswordValid && doPasswordsMatch
     val isOtpComplete: Boolean get() = otpCode.all { it.isNotEmpty() }

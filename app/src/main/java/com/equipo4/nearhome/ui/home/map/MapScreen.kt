@@ -452,16 +452,6 @@ private fun FilterRow(
         // Ordenar
         DropdownChip(label = "Ordenar", iconRes = R.drawable.ic_ordenar) { dismiss ->
             SortOption.entries.filter { it != SortOption.NONE }.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            option.label,
-                            fontSize = 13.sp,
-                            fontWeight = if (uiState.sort == option) FontWeight.Bold else FontWeight.Normal
-                        )
-                    },
-                    onClick = { onSortSelected(option); dismiss() }
-                )
             }
         }
 

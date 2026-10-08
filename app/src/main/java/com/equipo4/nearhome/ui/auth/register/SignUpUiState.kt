@@ -18,7 +18,22 @@ data class SignUpUiState(
     val canResendCode: Boolean = false,
     val isLoading: Boolean = false
 ) {
-    private val allowedDomains = listOf("gmail", "hotmail", "outlook")
+    private val allowedDomains = listOf("gmail", "hotmail", "outlook", "ucol")
+    private val allowedExtensions = listOf("com", "mx", "edu.mx", "org", "net")
+
+    private fun isDomainBaseAllowed(domainPart: String): Boolean {
+        return allowedDomains.any { domain ->
+            domainPart == domain || domainPart.startsWith("$domain.")
+        }
+    }
+
+    private fun hasValidDomainExtension(domainPart: String): Boolean {
+        return allowedDomains.any { domain ->
+            allowedExtensions.any { ext ->
+                domainPart == "$domain.$ext"
+            }
+        }
+    }
 
     // Validaciones de Correo
     val isEmailValid: Boolean
@@ -30,12 +45,8 @@ data class SignUpUiState(
             val localPart = parts[0]
             val domainPart = parts[1].lowercase()
 
-            if (localPart.length <= 4) return false
-
-            val isAllowedDomain = allowedDomains.any { domain ->
-                domainPart == domain || domainPart.startsWith("$domain.")
-            }
-            if (!isAllowedDomain) return false
+            if (localPart.isEmpty() || domainPart.isEmpty()) return false
+            if (!hasValidDomainExtension(domainPart)) return false
 
             return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
@@ -52,16 +63,20 @@ data class SignUpUiState(
             val localPart = parts[0]
             val domainPart = parts.getOrNull(1)?.lowercase().orEmpty()
 
-            if (localPart.length <= 4) {
-                return "Debe ingresar más de 4 caracteres antes del '@'"
+            if (localPart.isEmpty()) {
+                return "Debe ingresar el correo antes del '@'"
             }
 
-            val isAllowedDomain = allowedDomains.any { domain ->
-                domainPart == domain || domainPart.startsWith("$domain.")
+            if (domainPart.isEmpty()) {
+                return "Debe ingresar el dominio después del '@'"
             }
 
-            if (!isAllowedDomain) {
-                return "Solo se permiten dominios gmail, hotmail u outlook"
+            if (!isDomainBaseAllowed(domainPart)) {
+                return "Solo se permiten dominios gmail, hotmail, outlook o ucol"
+            }
+
+            if (!hasValidDomainExtension(domainPart)) {
+                return "Debe incluir una extensión válida (ej: .com, .mx, .edu.mx)"
             }
 
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
